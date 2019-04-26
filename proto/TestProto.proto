@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package proto;
+
+message GetByNameRequest {
+  string name = 1;
+  string requester = 2;
+}
+
+message GetResponse {
+  string name = 1;
+  string type = 2;
+  bytes data = 3;
+}
+
+message SetByNameRequest {}
+message SetResponse {}
+
+message DeleteByNameRequest {}
+message DeleteResponse {}
+
+service CredentialService {
+  rpc Get (GetByNameRequest) returns (GetResponse);
+  rpc Set (SetByNameRequest) returns (SetResponse);
+  rpc Delete (DeleteByNameRequest) returns (DeleteResponse);
+}
