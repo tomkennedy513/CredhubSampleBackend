@@ -2,30 +2,49 @@ package main
 
 import (
 	"fmt"
-	"google.golang.org/grpc"
 	"log"
-	"net"
-	"test/proto"
+	"os"
+	"os/signal"
+	"syscall"
 	"test/src"
 )
 
-func main(){
+func main() {
+	//src.SetValue("my-cred", []byte("test-value"))
+	//socket := "unix://test-socket.sock"
+	//lis, err := net.Listen("unix", socket)
+	//if err != nil {
+	//	log.Fatalf("failed to listen: %v", err)
+	//}
+	//
+	//s := src.Server{}
+	//
+	//grpcServer := grpc.NewServer()
+	//proto.RegisterCredentialServiceServer(grpcServer, &s)
+	//
+	//fmt.Println("grpc server running on socket: ", socket)
+	//
+	//if err = grpcServer.Serve(lis); err != nil {
+	//	log.Fatalf("failed to serve: %s", err)
+	//
+	//}
+
 	src.SetValue("my-cred", []byte("test-value"))
-	port:= 10000
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	if len(os.Args) == 1 {
+		_, _ = fmt.Fprintf(os.Stderr, "Usage: %s <path-to-unix-socket>\n", os.Args[0])
+		os.Exit(1)
+	}
+
+	s, err := src.New(os.Args[1])
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		log.Fatal(err)
 	}
+	s.Start()
 
-	s := src.Server{}
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
+	<-signals
 
-	grpcServer := grpc.NewServer()
-	proto.RegisterCredentialServiceServer(grpcServer, &s)
+	s.Stop()
 
-	fmt.Println("grpc server running on port: ", port)
-
-	if err = grpcServer.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %s", err)
-
-	}
 }
